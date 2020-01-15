@@ -1,7 +1,75 @@
 /*
+  Sequences and triggers
+*/
+-- hires
+drop sequence hires_seq; 
+create sequence hires_seq start with 1;
+
+drop trigger hires_bri;
+create or replace trigger hires_bri
+before insert on hires
+for each row
+begin 
+    select hires_seq.nextval into :new.hire_id from dual;
+end;
+/
+
+-- users
+drop sequence users_seq; 
+create sequence users_seq start with 1;
+
+drop trigger users_bri;
+create or replace trigger users_bri
+before insert on users
+for each row
+begin 
+    select users_seq.nextval into :new.user_id from dual;
+end;
+/
+
+-- terminals
+drop sequence terminals_seq; 
+create sequence terminals_seq start with 1;
+
+drop trigger terminals_bri;
+create or replace trigger terminals_bri
+before insert on terminals
+for each row
+begin 
+    select terminals_seq.nextval into :new.terminal_id from dual;
+end;
+/
+
+-- stations
+drop sequence stations_seq; 
+create sequence stations_seq start with 1;
+
+drop trigger stations_bri;
+create or replace trigger stations_bri
+before insert on stations
+for each row
+begin 
+    select stations_seq.nextval into :new.station_id from dual;
+end;
+/
+
+-- bikes
+drop sequence bikes_seq; 
+create sequence bikes_seq start with 1;
+
+drop trigger bikes_bri;
+create or replace trigger bikes_bri
+before insert on bikes
+for each row
+begin 
+    select bikes_seq.nextval into :new.bike_id from dual;
+end;
+/
+
+/*
   Triggers
 */
-
+drop trigger bikes_briu;
 create or replace trigger BIKES_BRIU
   before insert or update
   on BIKES
@@ -22,6 +90,7 @@ begin
 end;
 /
 
+drop trigger TERMINALS_BRIU;
 create or replace trigger TERMINALS_BRIU
   before insert or update
   on TERMINALS
@@ -42,6 +111,7 @@ begin
 end;
 /
 
+drop trigger HIRES_BRIU;
 create or replace trigger HIRES_BRIU
   before insert or update
   on HIRES
