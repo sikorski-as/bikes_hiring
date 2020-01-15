@@ -89,13 +89,13 @@ create or replace trigger BIKES_BRIU
   before insert or update
   on BIKES
   for each row
-declare
-  cnt number;
-begin
   /*
    This trigger checks if a bike isn't both occupied and attached to a terminal.
    If it is, application error -20002 is raised.
  */
+declare
+  cnt number;
+begin
   if :new.OCCUPIED = 'Y' then
     select count(*) into cnt from TERMINALS where TERMINALS.BIKE_ID = :new.BIKE_ID;
     if cnt > 0 then
@@ -110,13 +110,13 @@ create or replace trigger TERMINALS_BRIU
   before insert or update
   on TERMINALS
   for each row
-declare
-  cnt number;
-begin
   /*
     This trigger checks if a bike isn't both occupied and attached to a terminal.
     If it is, application error -20002 is raised.
   */
+declare
+  cnt number;
+begin
   if :new.BIKE_ID is not null then
     select count(*) into cnt from BIKES where BIKES.BIKE_ID = :new.BIKE_ID and BIKES.OCCUPIED = 'Y';
     if cnt > 0 then
@@ -131,17 +131,16 @@ create or replace trigger HIRES_BRIU
   before insert or update
   on HIRES
   for each row
-declare
-  cnt number;
-begin
-  /*
+   /*
     This trigger checks if the same bike wasn't hired twice during a certain period of time.
     If it is, application error -20000 is raised.
 
     It also checks if start time isn't later than the end time of a hire.
     If it is, application error -20001 is raised.
   */
-
+declare
+  cnt number;
+begin
   cnt := 0;
 
   if (:new.END_TIME is null) then
@@ -174,13 +173,7 @@ end;
 */
 
 create or replace procedure hire_bike(hire_bike_id in number, hire_user_id in number) is
-  hire_price number(6, 2);
-  user_money number(6, 2);
-  user_exists number(1);
-  bike_exists number(1);
-  bike_occupied CHAR(1);
-begin
-  /*
+   /*
     Procedure for hiring a given bike by a given user.
     Checks if:
     1. User and bike exist - otherwise raises application error -20003.
@@ -188,7 +181,12 @@ begin
     3. Uer has enough money - otherwise raises application error -20005.
     Then decreases user's balance, makes bike occupied and detaches bike from a terminal.
    */
-
+  hire_price number(6, 2);
+  user_money number(6, 2);
+  user_exists number(1);
+  bike_exists number(1);
+  bike_occupied CHAR(1);
+begin
   -- check if user and bike exist
   select count(*) into user_exists from USERS where user_id = hire_user_id;
   select count(*) into bike_exists from BIKES where bike_id = hire_bike_id;
@@ -215,18 +213,13 @@ begin
   -- bike can be hired
   insert into HIRES values (NULL, hire_bike_id, hire_user_id, sysdate, NULL, hire_price, NULL);
   update USERS set balance = balance - hire_price where user_id = hire_user_id;
-  update BIKES set occupied = 'Y' where bike_id = hire_bike_id;
   update TERMINALS set BIKE_ID= NULL where bike_id = hire_bike_id;
+  update BIKES set occupied = 'Y' where bike_id = hire_bike_id;
 end;
 /
 
 create or replace procedure return_bike(return_bike_id in number, return_terminal_id in number) is
-  terminal_exists number(1);
-  bike_exists number(1);
-  hire_exists number(1);
-  attached_bike number(6);
-begin
-  /*
+    /*
     Procedure for returning a given bike to a given terminal.
     Checks if:
     1. Bike and terminal exist - otherwise raises application error -20006.
@@ -234,6 +227,11 @@ begin
     3. Such hire exists - otherwise raises application error -20008.
     Then makes bike unocuppied, attached it to the given terminal and sets hire's endtime.
    */
+  terminal_exists number(1);
+  bike_exists number(1);
+  hire_exists number(1);
+  attached_bike number(6);
+begin
   -- check if terminal and bike exist
   select count(*) into terminal_exists from TERMINALS where terminal_id = return_terminal_id;
   select count(*) into bike_exists from BIKES where bike_id = return_bike_id;
