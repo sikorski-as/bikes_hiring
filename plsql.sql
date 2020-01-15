@@ -10,6 +10,9 @@ create or replace trigger hires_bri
 before insert on hires
 for each row
 begin 
+    /*
+      Inserts a value from a sequence into an artificial primary key field;
+    */
     select hires_seq.nextval into :new.hire_id from dual;
 end;
 /
@@ -23,6 +26,9 @@ create or replace trigger users_bri
 before insert on users
 for each row
 begin 
+    /*
+      Inserts a value from a sequence into an artificial primary key field;
+    */
     select users_seq.nextval into :new.user_id from dual;
 end;
 /
@@ -36,6 +42,9 @@ create or replace trigger terminals_bri
 before insert on terminals
 for each row
 begin 
+    /*
+      Inserts a value from a sequence into an artificial primary key field;
+    */
     select terminals_seq.nextval into :new.terminal_id from dual;
 end;
 /
@@ -49,6 +58,9 @@ create or replace trigger stations_bri
 before insert on stations
 for each row
 begin 
+    /*
+      Inserts a value from a sequence into an artificial primary key field;
+    */
     select stations_seq.nextval into :new.station_id from dual;
 end;
 /
@@ -62,6 +74,9 @@ create or replace trigger bikes_bri
 before insert on bikes
 for each row
 begin 
+    /*
+      Inserts a value from a sequence into an artificial primary key field;
+    */
     select bikes_seq.nextval into :new.bike_id from dual;
 end;
 /
