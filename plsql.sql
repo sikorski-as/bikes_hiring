@@ -180,6 +180,15 @@ create or replace procedure hire_bike(hire_bike_id in number, hire_user_id in nu
   bike_exists number(1);
   bike_occupied CHAR(1);
 begin
+  /*
+    Procedure for hiring a given bike by a given user.
+    Checks if:
+    1. User and bike exist - otherwise raises application error -20003.
+    2. Bike isn't occupied - otherwise raises application error -20004.
+    3. Uer has enough money - otherwise raises application error -20005.
+    Then decreases user's balance, makes bike occupied and detaches bike from a terminal.
+   */
+
   -- check if user and bike exist
   select count(*) into user_exists from USERS where user_id = hire_user_id;
   select count(*) into bike_exists from BIKES where bike_id = hire_bike_id;
@@ -204,7 +213,49 @@ begin
   end if;
 
   -- bike can be hired
-  insert into hires values (NULL, hire_bike_id, hire_user_id, sysdate, NULL, hire_price, NULL);
-  update USERS set balance = balance - hire_price;
+  insert into HIRES values (NULL, hire_bike_id, hire_user_id, sysdate, NULL, hire_price, NULL);
+  update USERS set balance = balance - hire_price where user_id = hire_user_id;
+  update BIKES set occupied = 'Y' where bike_id = hire_bike_id;
+  update TERMINALS set BIKE_ID= NULL where bike_id = hire_bike_id;
+end;
+/
+
+create or replace procedure return_bike(return_bike_id in number, return_terminal_id in number) is
+  terminal_exists number(1);
+  bike_exists number(1);
+  hire_exists number(1);
+  attached_bike number(6);
+begin
+  /*
+    Procedure for returning a given bike to a given terminal.
+    Checks if:
+    1. Bike and terminal exist - otherwise raises application error -20006.
+    2. Terminal isn't occupied - otherwise raises application error -20007.
+    3. Such hire exists - otherwise raises application error -20008.
+    Then makes bike unocuppied, attached it to the given terminal and sets hire's endtime.
+   */
+  -- check if terminal and bike exist
+  select count(*) into terminal_exists from TERMINALS where terminal_id = return_terminal_id;
+  select count(*) into bike_exists from BIKES where bike_id = return_bike_id;
+  if terminal_exists = 0 or bike_exists = 0 then
+    raise_application_error(-20006, 'Terminal or bike for a given ID does not exist');
+  end if;
+
+  -- check if terminal isn't occupied
+  select bike_id into attached_bike from TERMINALS where TERMINAL_ID = return_terminal_id;
+  if attached_bike is not null then
+    raise_application_error(-20007, 'Terminal is occupied');
+  end if;
+
+  -- check if such hire exists
+  select count(*) into hire_exists from hires where BIKE_ID = return_bike_id and END_TIME is null;
+  if hire_exists = 0 then
+    raise_application_error(-20008, 'Such hire does not exist');
+  end if;
+
+  -- bike can be returned
+  update HIRES set END_TIME=sysdate where bike_id = return_bike_id and END_TIME is null;
+  update BIKES set occupied = 'N' where bike_id = return_bike_id;
+  update TERMINALS set BIKE_ID = return_bike_id where terminal_id = return_terminal_id;
 end;
 /
