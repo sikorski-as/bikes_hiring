@@ -237,3 +237,8 @@ select S.STATION_ID,
 from STATIONS S
        inner join TERMINALS T on S.STATION_ID = T.STATION_ID
 group by S.STATION_ID, S.ADDRESS_CITY, S.ADDRESS_STREET, S.ADDRESS_NUMBER;
+
+comment on column station_stats.address is 'Address of a station.';
+comment on column station_stats.total_terminals is 'Total number of terminals belonging to a station.';
+comment on column station_stats.occupied_terminals is 'Number of occupied terminals belonging to a station.';
+comment on column station_stats.broken_terminals is 'Number of broken terminals belonging to a station.';
