@@ -225,3 +225,15 @@ COMMENT ON COLUMN TERMINALS.BROKEN IS 'Set to ''Y'' if terminal is broken, ''N''
 COMMENT ON COLUMN TERMINALS.BROKEN_DESCRIPTION IS 'Description of the malfunction indicated by BROKEN field.';
 
 COMMENT ON COLUMN USERS.BALANCE IS 'Amount of money in users account.';
+
+create or replace view STATION_STATS as
+select S.STATION_ID,
+       S.ADDRESS_CITY || ', ' || S.ADDRESS_STREET || ' ' || S.ADDRESS_NUMBER as address,
+       count(*) as total_terminals,
+       (select count(*) from TERMINALS where TERMINALS.BIKE_ID IS NOT NULL and TERMINALS.STATION_ID = S.STATION_ID)
+         as occupied_terminals,
+       (select count(*) from TERMINALS where TERMINALS.BROKEN = 'Y' and TERMINALS.STATION_ID = S.STATION_ID)
+         as broken_terminals
+from STATIONS S
+       inner join TERMINALS T on S.STATION_ID = T.STATION_ID
+group by S.STATION_ID, S.ADDRESS_CITY, S.ADDRESS_STREET, S.ADDRESS_NUMBER;
