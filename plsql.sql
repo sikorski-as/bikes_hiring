@@ -257,3 +257,65 @@ begin
   update TERMINALS set BIKE_ID = return_bike_id where terminal_id = return_terminal_id;
 end;
 /
+
+/*
+  Web PL/SQL
+*/
+
+CREATE OR REPLACE PROCEDURE STATION_STATUS IS
+  /*
+    Web PL/SQL procedure generating a report on stations in the system.
+    All stations are listed with their basic info such as:
+      total number of terminals,
+      number of occupied terminals,
+      number of broken terminals.
+    Descriptions of broken terminals are listed (grouped by station they belong to).
+  */
+BEGIN
+  HTP.HTMLOPEN;
+  HTP.HEADOPEN;
+    HTP.TITLE('Stations and terminals status');
+  HTP.HEADCLOSE;
+  HTP.BODYOPEN(cattributes => 'text="black" bgcolor="white"');
+  HTP.HEADER(1, 'Status of stations and terminals');
+
+  HTP.HEADER(2, 'Overall status');
+  HTP.PRINT('Red color means that at least one terminal is broken and station should be inspected.');
+  HTP.BR; HTP.BR;
+  HTP.TABLEOPEN(cattributes => 'border="1"');
+  HTP.TABLEROWOPEN;
+  HTP.TABLEHEADER('#');
+  HTP.TABLEHEADER('Station''s address');
+  HTP.TABLEHEADER('Total number of terminals');
+  HTP.TABLEHEADER('Number of occupied terminals');
+  HTP.TABLEHEADER('Number of broken terminals');
+  HTP.TABLEROWCLOSE;
+  FOR station_status IN (SELECT * FROM station_stats ORDER BY station_id) LOOP
+    HTP.TABLEROWOPEN(cattributes =>
+      CASE WHEN station_status.broken_terminals > 0 THEN 'style="color: red"' ELSE NULL END);
+    HTP.TABLEDATA(station_status.station_id);
+    HTP.TABLEDATA(station_status.address);
+    HTP.TABLEDATA(station_status.total_terminals);
+    HTP.TABLEDATA(station_status.occupied_terminals);
+    HTP.TABLEDATA(station_status.broken_terminals);
+    HTP.TABLEROWCLOSE;
+  END LOOP;
+  HTP.TABLECLOSE;
+  HTP.HEADER(2, 'Details on broken terminals');
+  FOR s IN (SELECT * FROM station_stats ORDER BY station_id) LOOP
+    HTP.HEADER(3, 'Station #' || s.station_id || ' (' || s.address || ')');
+    IF s.broken_terminals = 0 THEN
+      HTP.PRINT('All terminals of this station are fine!');
+    ELSE
+      HTP.OLISTOPEN;
+    FOR t IN  (SELECT * FROM terminals WHERE station_id = s.station_id AND broken = 'Y' ORDER BY terminal_id) LOOP
+      HTP.LISTITEM(NVL(t.broken_description, '(no description for this broken terminal has been provided)'));
+    END LOOP;
+    HTP.OLISTCLOSE;
+    END IF;
+  END LOOP;
+
+  HTP.BODYCLOSE;
+  HTP.HTMLCLOSE;
+END;
+/
